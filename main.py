@@ -1,5 +1,5 @@
 from dotenv import load_dotenv
-import bot
+from bot import run_bot
 
 
 if __name__ == '__main__':
@@ -7,4 +7,4 @@ if __name__ == '__main__':
   load_dotenv()
 
   # run the bot
-  bot.run_discord_bot()
+  run_bot()
