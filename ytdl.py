@@ -8,13 +8,6 @@ from discord.ext import commands
 youtube_dl.utils.bug_reports_message = lambda: ''
 
 
-class YTDLError(Exception):
-  pass
-
-class VoiceError(Exception):
-  pass
-
-
 class YTDLSource(discord.PCMVolumeTransformer):
   ytdl_format_options = {
     'format': 'bestaudio/best',
@@ -29,7 +22,7 @@ class YTDLSource(discord.PCMVolumeTransformer):
     'quiet': True,
     'no_warnings': True,
     'default_search': 'auto',
-    'source_address': '0.0.0.0'
+    'source_address': '0.0.0.0',
   }
 
   ffmpeg_options = {
@@ -72,26 +65,26 @@ class YTDLSource(discord.PCMVolumeTransformer):
     data = await loop.run_in_executor(None, partial)
 
     if data is None:
-      raise YTDLError('Couldn not find anything that matches `{}`'.format(search))
+      raise Exception('Couldn not find anything that matches `{}`'.format(search))
 
     if 'entries' not in data:
       to_process = data
     else:
       to_process = None
       for entry in data['entries']:
-        if entry:
+        if entry and entry.get('is_live') is False:
           to_process = entry
           break
 
       if to_process is None:
-        raise YTDLError('Could not find anything that matches `{}`'.format(search))
+        raise Exception('Could not find anything that matches `{}`'.format(search))
 
     webpage_url = to_process['webpage_url']
     partial = functools.partial(cls.YTDL.extract_info, webpage_url, download=False)
     processed_info = await loop.run_in_executor(None, partial)
 
     if processed_info is None:
-      raise YTDLError('Could not fetch `{}`'.format(webpage_url))
+      raise Exception('Could not fetch `{}`'.format(webpage_url))
 
     if 'entries' not in processed_info:
       info = processed_info
@@ -103,7 +96,7 @@ class YTDLSource(discord.PCMVolumeTransformer):
           break
 
       if info is None:
-        raise YTDLError('Could not retrieve any matches for `{}`'.format(webpage_url))
+        raise Exception('Could not retrieve any matches for `{}`'.format(webpage_url))
 
     return cls(ctx, discord.FFmpegPCMAudio(info['url'], **cls.ffmpeg_options), data=info)
 

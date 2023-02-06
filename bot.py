@@ -2,6 +2,7 @@ import os
 import discord
 from discord.ext import commands
 from ytdl import *
+from song import Song
 
 
 def run_bot():
@@ -29,8 +30,8 @@ def run_bot():
   @bot.command(name='leave', help='Bot leaves the voice channel')
   async def leave(ctx: commands.Context):
     voice_client = ctx.message.guild.voice_client
-    if voice_client.is_connected():
-      await stop(ctx)
+    if voice_client and voice_client.is_connected():
+      await ctx.send('Goodbye!')
       await voice_client.disconnect()
       return
     await ctx.send('Bot is not connected to a voice channel.')
@@ -49,11 +50,15 @@ def run_bot():
     async with ctx.typing():
       try:
         source = await YTDLSource.create_source(ctx, search, loop=bot.loop)
-      except YTDLError as e:
+      except Exception as e:
         await ctx.send('An error occurred while processing this request: {}'.format(str(e)))
+        return
       else:
         voice_channel.play(source)
-      await ctx.send('**Now playing:** {}'.format(source))
+
+      song_obj = Song(source)
+      embed = song_obj.create_embed_msg()
+      await ctx.send(embed=embed)
 
   @bot.command(name='pause', help='Bot pauses the audio')
   async def pause(ctx: commands.Context):
@@ -77,7 +82,6 @@ def run_bot():
     if voice_client and voice_client.is_playing():
       voice_client.stop()
       await ctx.send('Stopped playing audio.')
-      voice_client.cleanup()
       return
     await ctx.send('Bot is not playing anything.')
 
