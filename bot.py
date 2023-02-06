@@ -16,6 +16,14 @@ def run_bot():
   async def on_ready():
     print('{} is now running!'.format(bot.user))
 
+  async def on_message(message):
+    # We do not want the bot to reply to itself
+    if message.author == bot.user:
+      return
+
+    # Echo message
+    print('Message from {}: {}'.format(message.author, message.content))
+
   @bot.command(name='join', help='Bot joins the voice channel')
   async def join(ctx: commands.Context):
     '''Bot joins a voice channel'''
@@ -85,4 +93,5 @@ def run_bot():
       return
     await ctx.send('Bot is not playing anything.')
 
+  bot.add_listener(on_message, 'on_message')
   bot.run(TOKEN)
