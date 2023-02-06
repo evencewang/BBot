@@ -36,11 +36,15 @@ def run_bot():
     await ctx.send('Bot is not connected to a voice channel.')
 
   @bot.command(name='play', help='Bot plays the audio from the given url')
-  async def play(ctx: commands.Context, search: str):
+  async def play(ctx: commands.Context, *args):
+    search = ' '.join(args)
+
     voice_channel = ctx.message.guild.voice_client
     if not (voice_channel and voice_channel.is_connected()):
       await ctx.invoke(join)
       voice_channel = ctx.message.guild.voice_client
+    elif voice_channel.is_playing():
+      voice_channel.stop()
 
     async with ctx.typing():
       try:
